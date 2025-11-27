@@ -1,0 +1,266 @@
+{
+  "name": "DataAnalysis",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        288,
+        288
+      ],
+      "id": "b721b5bb-797e-49b0-a426-74d7a9eaa293",
+      "name": "When chat message received",
+      "webhookId": "76bd04c4-23d9-42f5-be26-8b3909e85426"
+    },
+    {
+      "parameters": {
+        "url": "https://app.nocodb.com/api/v2/tables/mtdb03y6uxb5a92/records",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        496,
+        288
+      ],
+      "id": "48d0011d-8f5f-4905-8b35-773ff540566d",
+      "name": "HTTP Request1",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tVdxvXnHQxxoCXyT",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f22aa07c-3979-42d6-93d9-95a49eee937a",
+              "name": "columns",
+              "value": "={{ Object.keys($json[\"list\"][0]).join(\", \") }}",
+              "type": "string"
+            },
+            {
+              "id": "ddf9a406-250d-416b-8419-9401b4ba2783",
+              "name": "sessionId",
+              "value": "={{ $node[\"When chat message received\"].json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "7069a552-6982-496a-99b5-efd20ab18ba8",
+              "name": "inputId",
+              "value": "={{ $node[\"When chat message received\"].json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        288
+      ],
+      "id": "b767d3b1-7f3d-49cd-a724-5d5a94fc1d07",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $node[\"When chat message received\"].json.chatInput }}",
+        "options": {
+          "systemMessage": "You are helpful Data Analysis Expert skilled working with nocodb, a database tool. Your task is to help understand the table that they mention.\n\nHere is the columns to the table for context:\n{{ $json.columns }}\n\nIf you generate a chart, you should also know that you are a visualization expert. When provided with a chart URL, return it using Markdown so that the chart image displays incline. Example format is below\n![Generated Chart](chart_url)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        912,
+        288
+      ],
+      "id": "0db7ea6b-7345-4c93-aa8e-54957b4e9c13",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "kwaipilot/kat-coder-pro:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        784,
+        496
+      ],
+      "id": "18275a8c-bae2-4a79-9541-1c46aa7b0baf",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "tiWUWUMtwBWLmPG3",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        496
+      ],
+      "id": "f1e2561c-fe0e-400e-bf64-06b5cc78427a",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "description": "Create Visual/ Chart",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Rw8rR5s8QGPJePyC"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1072,
+        496
+      ],
+      "id": "bb30e13c-ba56-4c98-8dc5-0837ce2e385a",
+      "name": "Call 'Data Visualization'"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "wb2cgqtg",
+        "projectId": "pyvb1fravnle123",
+        "table": "mtdb03y6uxb5a92",
+        "limit": 100,
+        "options": {
+          "fields": []
+        }
+      },
+      "type": "n8n-nodes-base.nocoDbTool",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        496
+      ],
+      "id": "da3dad78-2d15-42c9-8acc-2049f5af27be",
+      "name": "Get many rows in NocoDB",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "tVdxvXnHQxxoCXyT",
+          "name": "NocoDB Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Data Visualization'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows in NocoDB": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ceb69383-98d3-4a8a-acf5-081eafe22d8b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "becd193f43fc9df61afe509fe6f11a365a235e68afd4bd416b110798ece21316"
+  },
+  "id": "wBhrMOwDQyRHOGot",
+  "tags": []
+}
